@@ -1,6 +1,13 @@
 package labworx.io.services.account.dto.requests;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.web.context.annotation.RequestScope;
 
 @RequestScope
-public record AuthenticationRequest (String email, String password) {}
+@Getter
+@Setter
+public class AuthenticationRequest {
+    public String username;
+    public String password;
+}

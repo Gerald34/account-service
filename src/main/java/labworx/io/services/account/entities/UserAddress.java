@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 
 @Entity
 @Getter
@@ -17,8 +17,8 @@ public class UserAddress {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Account uid;
+    @OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+    private Account account;
     private String streetName;
     private int streetNumber;
     private String suburb;
@@ -26,7 +26,7 @@ public class UserAddress {
     private String country;
 
     public UserAddress(Account account, AddressRequest addressRequest) {
-        uid = account;
+        this.account = account;
         streetName = addressRequest.getStreetName();
         streetNumber = addressRequest.getStreetNumber();
         suburb = addressRequest.getSuburb();

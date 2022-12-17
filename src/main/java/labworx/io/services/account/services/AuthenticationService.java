@@ -1,30 +1,37 @@
 package labworx.io.services.account.services;
 
+import labworx.io.services.account.components.JwtTokenUtil;
 import labworx.io.services.account.dto.requests.AuthenticationRequest;
-import labworx.io.services.account.exceptions.BadRequestException;
-import labworx.io.services.account.repositories.AccountRepository;
+import labworx.io.services.account.dto.responses.AuthorizationResponse;
+import labworx.io.services.account.entities.Account;
+import labworx.io.services.account.exceptions.AuthorisationException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.userdetails.User;
 
-import java.util.Objects;
-
-@Service
+@Service(value = "userService")
 @RequiredArgsConstructor
-public class AuthenticationService {
-    private final AuthenticationManager authenticationManager;
-    private final JwtGeneratorImplementation jwtGeneratorImplementation;
-    private final AccountRepository accountRepository;
+public class AuthenticationService implements UserDetailsService {
+    private final JwtTokenUtil jwtTokenUtil;
+    private final AccountService accountService;
+    private final PasswordEncoder passwordEncoder;
+    private Account account = null;
 
-    public String authenticate(AuthenticationRequest request) throws BadRequestException {
-        var account = accountRepository.findByEmail(request.email());
+    public AuthorizationResponse authenticate(AuthenticationRequest request) {
+        account = accountService.getByUsername(request.getUsername());
+        if (!passwordEncoder.matches(request.getPassword(), account.getPassword()))
+            throw new AuthorisationException("Not authorised, either username or password is incorrect.");
 
-        if (!Objects.equals(account.getPassword(), request.password()))
-            throw new BadRequestException("Not authorised");
+        String token = jwtTokenUtil.generateToken(account);
 
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(account.getEmail(), account.getPassword()));
-
-        return jwtGeneratorImplementation.generateToken(account).toString();
+        return new AuthorizationResponse(account, token, "Bearer");
     }
+
+    public UserDetails loadUserByUsername(String username) {
+        return new User(account.getUsername(), account.getPassword(), account.getAuthorities());
+    }
+
 }

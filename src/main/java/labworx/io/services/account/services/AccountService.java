@@ -1,20 +1,24 @@
 package labworx.io.services.account.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import javax.transaction.Transactional;
 import labworx.io.services.account.dto.requests.AccountRegistrationRequest;
 import labworx.io.services.account.dto.requests.AccountRequest;
 import labworx.io.services.account.dto.requests.AddressRequest;
 import labworx.io.services.account.dto.responses.AccountResponse;
 import labworx.io.services.account.entities.Account;
 import labworx.io.services.account.entities.UserAddress;
+import labworx.io.services.account.exceptions.BankAccountException;
 import labworx.io.services.account.exceptions.NoContentException;
+import labworx.io.services.account.exceptions.NoRecordFoundException;
 import labworx.io.services.account.exceptions.ResourceException;
-import labworx.io.services.account.interfaces.JwtGeneratorInterface;
 import labworx.io.services.account.repositories.AccountRepository;
 import labworx.io.services.account.repositories.UserAddressRepository;
 import labworx.io.services.account.utils.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
@@ -24,9 +28,10 @@ import org.springframework.data.domain.Pageable;
 @Slf4j
 public class AccountService {
     private final AccountRepository _accountRepository;
-    private final UserAddressRepository userAddressRepository;
-    private final JwtGeneratorInterface jwtGenerator;
-
+    private final UserAddressRepository _userAddressRepository;
+    private final PasswordEncoder _passwordEncoder;
+    protected final FacilityService facilityService;
+private final IDValidationService idValidationService;
     /**
      * Fetch accounts
      * @param pageable Pageable
@@ -36,23 +41,45 @@ public class AccountService {
         return _accountRepository.findAll(pageable).map(AccountResponse::new);
     }
 
+    public Account getByUsername(String username) throws NoRecordFoundException {
+        return _accountRepository.findByUsername(username).orElseThrow(() -> new NoRecordFoundException("Account not found"));
+    }
+
     /**
      * Create new account
      * @param request AccountRegistrationRequest
      * @return AccountResponse
      */
-    public AccountResponse createAccount(AccountRegistrationRequest request) {
-        // Check if email is valid
-        if (!ValidationUtil.isEmailValid(request.getEmail()))
-            throw new ResourceException(true, "Email not valid");
+    @Transactional
+    public AccountResponse createAccount(AccountRegistrationRequest request) throws JsonProcessingException {
+
+        // Validate user ID number
+        var dto = new IDValidationService.ValidationDto();
+        dto.setIdno(request.getIdentityNumber());
+        if (!idValidationService.validate(dto).getValid())
+            throw new BankAccountException("ID number is not a valid SA ID number");
+
         // Check if email exists
         if(verifyEmail(request.getEmail()))
-            throw new ResourceException(true, "Email already taken");
+            throw new ResourceException("Email already taken");
+
+        // Check if email is valid
+        if (!ValidationUtil.isEmailValid(request.getEmail()))
+            throw new ResourceException("Email not valid");
 
         var account = new Account(request);
-        account.setRole(request.getRole());
+        account.setPassword(_passwordEncoder.encode(request.getPassword()));
         log.info("saving account");
         _accountRepository.save(account);
+
+        facilityService.createFacility(account);
+
+        // Todo
+        // Send email verification email
+
+        // Todo
+        // Create confirmation token
+        // Entity | Service | configuration
         return new AccountResponse(account);
     }
 
@@ -83,10 +110,10 @@ public class AccountService {
      * @throws NoContentException exception
      */
     public void addAddress(AddressRequest request) throws NoContentException {
-        var account = getUserById(request.getId());
+        var account = getAccountById(request.getId());
 
         var address = new UserAddress(account, request);
-        userAddressRepository.save(address);
+        _userAddressRepository.save(address);
     }
 
     /**
@@ -95,7 +122,7 @@ public class AccountService {
      * @return Account
      * @throws NoContentException exception
      */
-    public Account getUserById(Long id) throws NoContentException {
+    public Account getAccountById(Long id) throws NoContentException {
         return _accountRepository.findById(id)
                 .orElseThrow(() -> new NoContentException("Account with id: " + id + " not found"));
     }

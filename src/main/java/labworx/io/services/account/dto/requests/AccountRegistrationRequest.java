@@ -10,7 +10,9 @@ public class AccountRegistrationRequest {
     private String firstName;
     private String lastName;
     private String email;
+    private String username;
     private String password;
+    private String primaryContactNumber;
     private String identityNumber;
     private Roles role;
 }

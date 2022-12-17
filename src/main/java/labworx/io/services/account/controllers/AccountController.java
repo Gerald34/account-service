@@ -1,11 +1,13 @@
 package labworx.io.services.account.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import labworx.io.services.account.dto.requests.AccountRegistrationRequest;
 import labworx.io.services.account.dto.requests.AccountRequest;
 import labworx.io.services.account.dto.requests.AddressRequest;
 import labworx.io.services.account.dto.requests.PasswordRequest;
 import labworx.io.services.account.dto.responses.AccountResponse;
 import labworx.io.services.account.dto.responses.GenericResponse;
+import labworx.io.services.account.enums.Roles;
 import labworx.io.services.account.exceptions.NoContentException;
 import labworx.io.services.account.services.AccountService;
 import labworx.io.services.account.services.SecurityService;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import static org.springframework.http.ResponseEntity.ok;
 import org.springframework.data.domain.Pageable;
 
+import javax.annotation.security.RolesAllowed;
+
 @RestController
 @Slf4j
 @RequestMapping("account")
@@ -27,13 +31,14 @@ public class AccountController {
     private final SecurityService securityService;
 
     @GetMapping("")
+    @RolesAllowed({"SUPER_USER", "ADMIN"})
     public ResponseEntity<Page<AccountResponse>> getAccounts(Pageable pageable) {
         return ok(accountService.getAccounts(pageable));
     }
 
     @PostMapping("create")
-    public ResponseEntity<AccountResponse> signup(@RequestBody AccountRegistrationRequest accountRegistrationRequest) {
-        log.info("Account registration {}", accountRegistrationRequest);
+    public ResponseEntity<AccountResponse> signup(@RequestBody AccountRegistrationRequest accountRegistrationRequest) throws JsonProcessingException {
+        log.info("Account registration {}", accountRegistrationRequest.getEmail());
         return ok(accountService.createAccount(accountRegistrationRequest));
     }
 

@@ -6,11 +6,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ResourceException extends RuntimeException {
-    private Boolean isError;
-    private String message;
 
-    public ResourceException(Boolean isError, String message) {
-        this.isError = isError;
-        this.message = message;
+    public ResourceException(String message) {
+        super(message);
     }
 }

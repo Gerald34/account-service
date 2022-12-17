@@ -1,7 +1,8 @@
 package labworx.io.services.account.controllers;
 
 import labworx.io.services.account.dto.requests.AuthenticationRequest;
-import labworx.io.services.account.exceptions.BadRequestException;
+import labworx.io.services.account.dto.responses.AuthorizationResponse;
+import labworx.io.services.account.exceptions.NoContentException;
 import labworx.io.services.account.services.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("")
-    public ResponseEntity<String> authenticate(AuthenticationRequest request) throws BadRequestException {
+    public ResponseEntity<AuthorizationResponse> authenticate(AuthenticationRequest request) throws NoContentException {
         return ok(authenticationService.authenticate(request));
     }
 }
