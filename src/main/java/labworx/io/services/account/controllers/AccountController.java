@@ -7,7 +7,6 @@ import labworx.io.services.account.dto.requests.AddressRequest;
 import labworx.io.services.account.dto.requests.PasswordRequest;
 import labworx.io.services.account.dto.responses.AccountResponse;
 import labworx.io.services.account.dto.responses.GenericResponse;
-import labworx.io.services.account.enums.Roles;
 import labworx.io.services.account.exceptions.NoContentException;
 import labworx.io.services.account.services.AccountService;
 import labworx.io.services.account.services.SecurityService;

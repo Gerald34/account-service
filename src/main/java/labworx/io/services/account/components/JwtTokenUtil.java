@@ -16,7 +16,7 @@ import java.util.function.Function;
 @Component
 public class JwtTokenUtil implements Serializable {
 
-    private final String SIGNING_KEY = System.getenv("JWT_SECRET_KEY");
+    private final String SECRET_KEY = System.getenv("JWT_SECRET_KEY");
 
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
@@ -33,7 +33,7 @@ public class JwtTokenUtil implements Serializable {
 
     private Claims getAllClaimsFromToken(String token) {
         return Jwts.parser()
-                .setSigningKey(SIGNING_KEY)
+                .setSigningKey(SECRET_KEY)
                 .parseClaimsJws(token)
                 .getBody();
     }
@@ -47,13 +47,13 @@ public class JwtTokenUtil implements Serializable {
         Claims claims = Jwts.claims().setSubject(account.getUsername());
         claims.put("roles", account.getAuthorities());
 
-        int ACCESS_TOKEN_VALIDITY_SECONDS = 5000;
+        int ACCESS_TOKEN_SECONDS = 5000;
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuer("http://www.labworx.io")
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_VALIDITY_SECONDS * 1000))
-                .signWith(SignatureAlgorithm.HS256, SIGNING_KEY)
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_SECONDS * 1000))
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
     }
 

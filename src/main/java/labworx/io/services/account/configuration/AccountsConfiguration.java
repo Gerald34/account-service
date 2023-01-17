@@ -29,8 +29,7 @@ public class AccountsConfiguration {
     }
 
     public void createAccount() {
-        initAccount("Codex", "Labworx", "code45dev@gmail.com", "Codex@1234",
-                SUPER_USER);
+        initAccount("Codex", "Labworx", "code45dev@gmail.com", "Codex@1234", SUPER_USER);
         initAccount("Gerald", "Mathabela", "gerald@labworx.io", "Gerald@1234", USER);
         initAccount("Vusimuzi", "Khumalo", "khumalo@labworx.io", "Vusimuzi@1234", ADMIN);
         initAccount("Labworx", "Technologies", "accounts@labworx.io", "Labworx@1234", GROUP);

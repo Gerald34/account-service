@@ -69,7 +69,8 @@ public class Account extends AbstractDateModel implements UserDetails {
 
         ACTIVE("Account status"),
         EMAIL_CONFIRMATION("User needs to confirm email address"),
-        DEACTIVATED("Account deactivated"),
+        BLOCKED("Account blocked"),
+        DEACTIVATED_BY_OWNER("Account deactivated"),
         DELETED("Account deleted");
 
         private final String label;
